@@ -1,0 +1,48 @@
+# =============================================================================
+# Credit Risk Model - Docker Compose
+# =============================================================================
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: credit-risk-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_NAME=CreditRiskModel
+      - MODEL_STAGE=Production
+    volumes:
+      - ./models:/app/models:ro
+      - ./data:/app/data:ro
+    depends_on:
+      - mlflow
+    networks:
+      - credit-risk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: credit-risk-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow_store:/mlflow_store
+    command: mlflow server --backend-store-uri sqlite:///mlflow_store/mlflow.db --default-artifact-root ./artifacts --host 0.0.0.0 --port 5000
+    networks:
+      - credit-risk-network
+    restart: unless-stopped
+
+networks:
+  credit-risk-network:
+    driver: bridge
