@@ -2,9 +2,6 @@
 Credit Risk Model - Pydantic Models
 ====================================
 Request/Response schemas for FastAPI service.
-Implements Task 6: Model Deployment.
-
-Author: Bati Bank Analytics Team
 """
 
 from typing import Any, Dict, List, Optional

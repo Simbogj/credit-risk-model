@@ -2,9 +2,6 @@
 Credit Risk Model - FastAPI Application
 ========================================
 REST API for credit risk predictions.
-Implements Task 6: Model Deployment.
-
-Author: Bati Bank Analytics Team
 """
 
 import logging
@@ -63,7 +60,7 @@ feature_names = None
 
 
 # =============================================================================
-# SECTION 1: MODEL LOADING
+# MODEL LOADING
 # =============================================================================
 
 def load_model(
@@ -138,7 +135,7 @@ def get_feature_order() -> List[str]:
 
 
 # =============================================================================
-# SECTION 2: PREDICTION FUNCTIONS
+# PREDICTION FUNCTIONS
 # =============================================================================
 
 def make_prediction(features: Dict[str, Any]) -> Dict[str, Any]:
@@ -220,7 +217,7 @@ def get_credit_decision(risk_probability: float) -> Dict[str, Any]:
 
 
 # =============================================================================
-# SECTION 3: FASTAPI APPLICATION
+# FASTAPI APPLICATION
 # =============================================================================
 
 app = FastAPI(
@@ -424,7 +421,7 @@ async def global_exception_handler(request, exc):
 
 
 # =============================================================================
-# SECTION 4: MAIN ENTRY POINT
+# MAIN ENTRY POINT
 # =============================================================================
 
 if __name__ == "__main__":
