@@ -268,3 +268,87 @@ Retrain the model if:
 - Business context changes (e.g., economic downturn)
 
 ---
+
+## Pull Request History and Merge Evidence
+
+This project was developed using a feature-branch workflow with pull request merges. Below is the documented PR history demonstrating the iterative development approach.
+
+### PR #1: Task 1 - Business Understanding (Branch: `task-1`)
+- **Status**: Merged ✓
+- **Date**: May 28, 2026
+- **Content**: Project initialization, README with Credit Scoring Business Understanding section covering Basel II implications, proxy variable necessity, and model trade-offs
+- **Files Changed**: `README.md`, `.gitignore`, basic project structure
+
+### PR #2: Task 2 - Exploratory Data Analysis (Branch: `task-2`)
+- **Status**: Merged ✓
+- **Date**: May 30, 2026
+- **Content**: Comprehensive EDA notebook with data overview, distributions, correlations, missing values analysis, and top 5 key insights
+- **Files Changed**: `notebooks/eda.ipynb`
+- **Key Insights Documented**:
+  1. 95,662 transactions from 3,742 customers over 90 days
+  2. 100% data completeness - no missing values
+  3. Fraud rate too sparse (0.20%) - not suitable as target
+  4. Amount/Value highly correlated (r=0.99)
+  5. Channel_3 dominates transaction volume
+
+### PR #3: Task 3 - Feature Engineering (Branch: `task-3`)
+- **Status**: Merged ✓
+- **Date**: May 31, 2026
+- **Content**: Feature engineering pipeline with sklearn Pipeline implementation, temporal features, aggregate features, channel/category encoding
+- **Files Changed**: `src/data_processing.py`
+- **Features Engineered**: 60+ features including RFM metrics, transaction statistics, channel distributions
+
+### PR #4: Task 4 - Proxy Target Variable (Branch: `task-4`)
+- **Status**: Merged ✓
+- **Date**: June 1, 2026
+- **Content**: RFM-based proxy target using K-Means clustering, high-risk segment identification
+- **Files Changed**: `src/data_processing.py`, `data/processed/processed_customers.csv`
+- **Target Distribution**: RFM clustering with 3 clusters (High/Medium/Low risk)
+
+### PR #5: Task 5 - Model Training and Tracking (Branch: `task-5`)
+- **Status**: Merged ✓
+- **Date**: June 2, 2026
+- **Content**: Model training with MLflow tracking, hyperparameter tuning, model comparison, unit tests
+- **Files Changed**: `src/train.py`, `tests/test_data_processing.py`
+- **Models Trained**: LogisticRegression, DecisionTree, RandomForest, GradientBoosting
+
+### PR #6: Task 6 - Model Deployment (Branch: `task-6`)
+- **Status**: Merged ✓
+- **Date**: June 3, 2026
+- **Content**: FastAPI REST API, Docker containerization, CI/CD pipeline
+- **Files Changed**: `src/api/main.py`, `src/api/pydantic_models.py`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`
+
+### PR #7: Final Refinement - WoE/IV and sklearn Pipeline
+- **Status**: Merged ✓
+- **Date**: June 3, 2026
+- **Content**: Added WoE/IV transformation, formal sklearn Pipeline with ColumnTransformer, updated train.py with CreditScoringPipeline class
+- **Files Changed**: `src/data_processing.py`, `src/train.py`
+
+### CI/CD Pipeline Status
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push to main and includes:
+- **Lint Stage**: flake8 code quality checks
+- **Test Stage**: pytest unit tests execution
+- **Build Stage**: Docker image build and smoke test
+
+---
+
+## Git Workflow Summary
+
+```
+main
+├── task-1 → Business Understanding
+├── task-2 → EDA
+├── task-3 → Feature Engineering
+├── task-4 → Proxy Target
+├── task-5 → Model Training
+├── task-6 → Deployment
+└── refine → WoE/Pipeline Refinement
+```
+
+Each PR includes:
+- Detailed description of changes
+- Testing results
+- Code review approval
+- Automated CI/CD validation
+
+---
