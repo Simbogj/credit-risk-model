@@ -2,9 +2,7 @@
 Credit Risk Model - Model Training Pipeline
 ============================================
 Model training, hyperparameter tuning, and MLflow experiment tracking.
-Implements TASK 5: Model Training and Tracking.
 
-Author: Bati Bank Analytics Team
 """
 
 import logging
@@ -66,7 +64,7 @@ MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # =============================================================================
-# SECTION 1: DATA LOADING
+# DATA LOADING
 # =============================================================================
 
 def load_processed_data(filepath: str) -> Tuple[pd.DataFrame, pd.Series]:
@@ -96,7 +94,7 @@ def load_processed_data(filepath: str) -> Tuple[pd.DataFrame, pd.Series]:
 
 
 # =============================================================================
-# SECTION 2: DATA PREPARATION
+# DATA PREPARATION
 # =============================================================================
 
 def prepare_data(
@@ -134,7 +132,7 @@ def prepare_data(
 
 
 # =============================================================================
-# SECTION 3: MODEL DEFINITIONS
+# MODEL DEFINITIONS
 # =============================================================================
 
 def get_models() -> Dict[str, Any]:
@@ -188,7 +186,7 @@ def get_models() -> Dict[str, Any]:
 
 
 # =============================================================================
-# SECTION 4: PIPELINE CREATION
+# PIPELINE CREATION
 # =============================================================================
 
 def create_pipeline(model) -> Pipeline:
@@ -216,7 +214,7 @@ def create_pipeline(model) -> Pipeline:
 
 
 # =============================================================================
-# SECTION 5: MODEL TRAINING WITH MLFLOW
+# MODEL TRAINING WITH MLFLOW
 # =============================================================================
 
 def train_and_evaluate(
@@ -349,7 +347,7 @@ def train_and_evaluate(
 
 
 # =============================================================================
-# SECTION 6: COMPARE AND SELECT BEST MODEL
+# COMPARE AND SELECT BEST MODEL
 # =============================================================================
 
 def compare_models(results: Dict[str, Dict[str, float]]) -> Tuple[str, Dict[str, Any]]:
@@ -390,7 +388,7 @@ def compare_models(results: Dict[str, Dict[str, float]]) -> Tuple[str, Dict[str,
 
 
 # =============================================================================
-# SECTION 7: REGISTER BEST MODEL
+# REGISTER BEST MODEL
 # =============================================================================
 
 def register_best_model(
@@ -462,7 +460,7 @@ def register_best_model(
 
 
 # =============================================================================
-# SECTION 8: MAIN TRAINING PIPELINE
+# MAIN TRAINING PIPELINE
 # =============================================================================
 
 def run_training_pipeline(
@@ -559,7 +557,7 @@ def run_training_pipeline(
 
 
 # =============================================================================
-# SECTION 9: STANDALONE EXECUTION
+# STANDALONE EXECUTION
 # =============================================================================
 
 if __name__ == '__main__':

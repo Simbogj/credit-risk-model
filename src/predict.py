@@ -2,8 +2,6 @@
 Credit Risk Model - Inference Pipeline
 =======================================
 Load trained models and make predictions on new data.
-
-Author: Bati Bank Analytics Team
 """
 
 import logging
@@ -32,7 +30,7 @@ MODEL_DIR = PROJECT_ROOT / "models"
 
 
 # =============================================================================
-# SECTION 1: MODEL LOADING
+# MODEL LOADING
 # =============================================================================
 
 def load_model_from_registry(
@@ -102,7 +100,8 @@ def load_model_local(model_path: str) -> Pipeline:
 
 
 # =============================================================================
-# SECTION 2: PREDICTION
+# 
+# PREDICTION
 # =============================================================================
 
 def predict(
@@ -186,7 +185,8 @@ def predict_single(
 
 
 # =============================================================================
-# SECTION 3: CREDIT SCORE CALCULATION
+# 
+# CREDIT SCORE CALCULATION
 # =============================================================================
 
 def calculate_credit_score(
@@ -261,7 +261,7 @@ def get_credit_decision(
 
 
 # =============================================================================
-# SECTION 4: BATCH PREDICTION
+# BATCH PREDICTION
 # =============================================================================
 
 def predict_batch(
@@ -329,7 +329,7 @@ def predict_batch(
 
 
 # =============================================================================
-# SECTION 5: FEATURE IMPORTANCE
+# FEATURE IMPORTANCE
 # =============================================================================
 
 def get_feature_importance(

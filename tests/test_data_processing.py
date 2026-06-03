@@ -2,9 +2,7 @@
 Credit Risk Model - Unit Tests
 ===============================
 Unit tests for data_processing.py module.
-Implements Task 5 requirement: Write Unit Tests.
 
-Author: Bati Bank Analytics Team
 """
 
 import numpy as np
