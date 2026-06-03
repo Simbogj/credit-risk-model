@@ -1,16 +1,11 @@
 """
-Credit Risk Model - Data Processing Pipeline
+Feature Engineering Pipeline
 ==============================================
-Feature Engineering for Credit Risk Model
-
-TASK 3: Feature Engineering Pipeline
 - Aggregate features (Total, Avg, Std of amounts per customer)
-- Temporal features (hour, day, month, year, day of week)
+- Extract Features (hour, day, month, year)
 - Categorical encoding (One-hot, Label encoding)
-- Missing value handling (Imputation)
+- Missing value handling (Imputation, Removal)
 - Normalization/Standardization
-
-Author: Bati Bank Analytics Team
 """
 
 import logging
@@ -740,8 +735,13 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Credit Risk Feature Engineering')
-    parser.add_argument('--data', type=str, required=True, help='Path to raw transaction data')
-    parser.add_argument('--output', type=str, default=None, help='Path to save processed data')
+    parser.add_argument(
+    '--data',
+    type=str,
+    default='data/raw/data.csv',
+    help='Path to raw transaction data'
+)
+    parser.add_argument('--output', type=str, default='data/processed/processed_customers.csv', help='Path to save processed data')
 
     args = parser.parse_args()
 
