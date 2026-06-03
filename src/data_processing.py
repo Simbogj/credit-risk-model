@@ -9,6 +9,7 @@ Feature Engineering Pipeline
 """
 
 import logging
+import os
 import warnings
 from typing import Optional, Tuple, List
 
@@ -31,7 +32,7 @@ np.random.seed(RANDOM_STATE)
 
 
 # =============================================================================
-# TASK 3.1: DATA LOADING
+# DATA LOADING
 # =============================================================================
 
 def load_raw_data(filepath: str) -> pd.DataFrame:
@@ -55,7 +56,7 @@ def load_raw_data(filepath: str) -> pd.DataFrame:
 
 
 # =============================================================================
-# TASK 3.2: TEMPORAL FEATURE EXTRACTION
+# FEATURE EXTRACTION
 # =============================================================================
 
 def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -67,8 +68,6 @@ def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     - TransactionDay: The day of the month when the transaction occurred
     - TransactionMonth: The month when the transaction occurred
     - TransactionYear: The year when the transaction occurred
-    - DayOfWeek: Day of week (0=Monday, 6=Sunday)
-    - IsWeekend: Boolean for weekend transactions
 
     Args:
         df: Transaction DataFrame with TransactionStartTime
@@ -85,15 +84,13 @@ def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     df['TransactionDay'] = df['TransactionStartTime'].dt.day
     df['TransactionMonth'] = df['TransactionStartTime'].dt.month
     df['TransactionYear'] = df['TransactionStartTime'].dt.year
-    df['DayOfWeek'] = df['TransactionStartTime'].dt.dayofweek
-    df['IsWeekend'] = (df['DayOfWeek'] >= 5).astype(int)
 
-    logger.info(f"Extracted temporal features: hour, day, month, year, day_of_week, weekend")
+    logger.info(f"Extracted temporal features: hour, day, month, year")
     return df
 
 
 # =============================================================================
-# TASK 3.3: CREATE AGGREGATE FEATURES
+# CREATE AGGREGATE FEATURES
 # =============================================================================
 
 def create_aggregate_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -180,7 +177,7 @@ def create_aggregate_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # =============================================================================
-# TASK 3.4: CHANNEL AND CATEGORY FEATURES
+# CHANNEL AND CATEGORY FEATURES
 # =============================================================================
 
 def create_channel_category_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -231,7 +228,7 @@ def create_channel_category_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # =============================================================================
-# TASK 3.5: PROVIDER AND PRICING FEATURES
+# PROVIDER AND PRICING FEATURES
 # =============================================================================
 
 def create_provider_pricing_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -273,7 +270,7 @@ def create_provider_pricing_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # =============================================================================
-# TASK 3.6: CATEGORICAL ENCODING
+# CATEGORICAL ENCODING
 # =============================================================================
 
 def encode_categorical_features(df: pd.DataFrame, customer_df: pd.DataFrame) -> pd.DataFrame:
@@ -310,7 +307,7 @@ def encode_categorical_features(df: pd.DataFrame, customer_df: pd.DataFrame) -> 
 
 
 # =============================================================================
-# TASK 3.7: NORMALIZE/SCALE FEATURES
+# NORMALIZE/SCALE FEATURES
 # =============================================================================
 
 def normalize_features(df: pd.DataFrame, columns: List[str], method: str = 'standard') -> pd.DataFrame:
@@ -344,7 +341,7 @@ def normalize_features(df: pd.DataFrame, columns: List[str], method: str = 'stan
 
 
 # =============================================================================
-# TASK 3.8: HANDLE MISSING VALUES
+# HANDLE MISSING VALUES
 # =============================================================================
 
 def handle_missing_values(df: pd.DataFrame, strategy: str = 'median') -> pd.DataFrame:
@@ -391,7 +388,7 @@ def handle_missing_values(df: pd.DataFrame, strategy: str = 'median') -> pd.Data
 
 
 # =============================================================================
-# TASK 3.9: MAIN FEATURE ENGINEERING PIPELINE
+# MAIN FEATURE ENGINEERING PIPELINE
 # =============================================================================
 
 def build_features(raw_data_path: str, output_path: Optional[str] = None) -> pd.DataFrame:
@@ -466,7 +463,7 @@ def build_features(raw_data_path: str, output_path: Optional[str] = None) -> pd.
 
 
 # =============================================================================
-# TASK 4: PROXY TARGET VARIABLE ENGINEERING
+# PROXY TARGET VARIABLE ENGINEERING
 # =============================================================================
 
 def calculate_rfm_features(df: pd.DataFrame, snapshot_date: Optional[pd.Timestamp] = None) -> pd.DataFrame:
