@@ -1,0 +1,8 @@
+{
+  "best_model": "DecisionTree",
+  "best_roc_auc": 1.0,
+  "best_accuracy": 1.0,
+  "best_precision": 1.0,
+  "best_recall": 1.0,
+  "best_f1": 1.0
+}

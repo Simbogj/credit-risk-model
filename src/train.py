@@ -59,7 +59,7 @@ np.random.seed(RANDOM_STATE)
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODEL_DIR = PROJECT_ROOT / "models"
-MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", None)  # Will use local storage if not set
 
 # Ensure directories exist
 MODEL_DIR.mkdir(parents=True, exist_ok=True)

@@ -68,6 +68,10 @@ def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     - TransactionDay: The day of the month when the transaction occurred
     - TransactionMonth: The month when the transaction occurred
     - TransactionYear: The year when the transaction occurred
+    - DayOfWeek: Day of week (0=Monday, 6=Sunday)
+    - IsWeekend: Binary flag for weekend transactions
+    - Quarter: Quarter of the year
+    - WeekOfYear: Week number of the year
 
     Args:
         df: Transaction DataFrame with TransactionStartTime
@@ -84,8 +88,12 @@ def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     df['TransactionDay'] = df['TransactionStartTime'].dt.day
     df['TransactionMonth'] = df['TransactionStartTime'].dt.month
     df['TransactionYear'] = df['TransactionStartTime'].dt.year
+    df['DayOfWeek'] = df['TransactionStartTime'].dt.dayofweek
+    df['IsWeekend'] = (df['TransactionStartTime'].dt.dayofweek >= 5).astype(int)
+    df['Quarter'] = df['TransactionStartTime'].dt.quarter
+    df['WeekOfYear'] = df['TransactionStartTime'].dt.isocalendar().week
 
-    logger.info(f"Extracted temporal features: hour, day, month, year")
+    logger.info(f"Extracted temporal features: hour, day, month, year, dayofweek, weekend, quarter, weekofyear")
     return df
 
 
