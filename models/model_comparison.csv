@@ -1,0 +1,5 @@
+Model,accuracy,precision,recall,f1,roc_auc
+DecisionTree,1.0,1.0,1.0,1.0,1.0
+RandomForest,1.0,1.0,1.0,1.0,1.0
+GradientBoosting,1.0,1.0,1.0,1.0,1.0
+LogisticRegression,0.9919893190921228,0.9986130374479889,0.993103448275862,0.995850622406639,0.9984482758620689
