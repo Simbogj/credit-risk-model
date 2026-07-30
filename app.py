@@ -11,9 +11,52 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import streamlit as st
+
+# Safe import of Streamlit
+try:
+    import streamlit as st
+except ModuleNotFoundError:
+    class _MockSt:
+        def warning(self, *args, **kwargs):
+            pass
+        def cache_data(self, func):
+            return func
+        def cache_resource(self, func):
+            return func
+        def set_page_config(self, **kwargs):
+            pass
+        def markdown(self, *args, **kwargs):
+            pass
+        def metric(self, *args, **kwargs):
+            pass
+        def subheader(self, *args, **kwargs):
+            pass
+        def header(self, *args, **kwargs):
+            pass
+        def write(self, *args, **kwargs):
+            pass
+        def columns(self, n):
+            return [_MockSt() for _ in range(n)]
+        def plotly_chart(self, *args, **kwargs):
+            pass
+        def sidebar(self):
+            return self
+        def selectbox(self, *args, **kwargs):
+            return None
+        def radio(self, *args, **kwargs):
+            return None
+        def button(self, *args, **kwargs):
+            return False
+    st = _MockSt()
+
+# Safe import of Plotly
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ModuleNotFoundError:
+    st.warning("Plotly not installed; visualizations will be disabled.")
+    px = None
+    go = None
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -70,9 +113,43 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    """Load processed data."""
-    df = pd.read_csv(DATA_PATH)
-    return df
+    """Load processed data. If the default data file is missing, create a small synthetic dataset.
+    This ensures the dashboard runs even on a fresh clone without data.
+    """
+    if DATA_PATH.is_file():
+        return pd.read_csv(DATA_PATH)
+    else:
+        st.warning("Processed data not found. Using synthetic demo data.")
+        # Define minimal required columns for the dashboard and prediction pages
+        cols = [
+            "is_high_risk",
+            "AvgAmount",
+            "TransactionCount",
+            "TotalAmount",
+            "Recency",
+            "Frequency",
+            "Monetary",
+            "FraudRate",
+            "StdAmount",
+            "CreditRatio",
+            "DebitRatio",
+        ]
+        data = {
+            "is_high_risk": [0, 1],
+            "AvgAmount": [1200.0, 3000.0],
+            "TransactionCount": [10, 30],
+            "TotalAmount": [12000.0, 90000.0],
+            "Recency": [5, 20],
+            "Frequency": [15, 40],
+            "Monetary": [18000.0, 120000.0],
+            "FraudRate": [0.02, 0.15],
+            "StdAmount": [200.0, 600.0],
+            "CreditRatio": [0.2, 0.8],
+            "DebitRatio": [0.8, 0.2],
+        }
+        df = pd.DataFrame(data)
+        # Ensure column order matches expected
+        return df[cols]
 
 
 @st.cache_resource
@@ -122,7 +199,7 @@ def main():
     )
     
     if page == "📈 Overview":
-        overview_page(df, metrics, comparison)
+        overview_page(df, metrics, comparison, features)
     elif page == "🔮 Model Performance":
         performance_page(df, model, metrics)
     elif page == "📊 Feature Analysis":
@@ -133,7 +210,7 @@ def main():
         about_page()
 
 
-def overview_page(df, metrics, comparison):
+def overview_page(df, metrics, comparison, features):
     """Overview dashboard page."""
     st.header("📈 Project Overview")
     
