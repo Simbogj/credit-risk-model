@@ -825,20 +825,17 @@ if __name__ == '__main__':
 
     # Default data path
     if args.data is None:
-        possible_paths = [
-            DATA_DIR / "processed_customers.csv",
-            PROJECT_ROOT / "data" / "processed_customers.csv",
-        ]
+        from paths import resolve_processed_data
 
-        data_path = None
-        for path in possible_paths:
-            if path.exists():
-                data_path = str(path)
-                break
-
-        if data_path is None:
-            logger.error("No processed data found. Run data_processing.py first or provide --data path")
+        resolved = resolve_processed_data()
+        if not resolved.is_file():
+            logger.error(
+                "No processed data found at %s. Run `python run_pipeline.py` "
+                "or provide --data path.",
+                resolved,
+            )
             sys.exit(1)
+        data_path = str(resolved)
     else:
         data_path = args.data
 

@@ -13,6 +13,7 @@ import pandas as pd
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
+from paths import RAW_DATA_PATH, PROCESSED_TRAIN_PATH
 from data_processing import (
     load_raw_data,
     extract_temporal_features,
@@ -32,10 +33,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Paths
-PROJECT_ROOT = Path(__file__).parent
-RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "data.csv"
-PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "train_data.csv"
+PROCESSED_DATA_PATH = PROCESSED_TRAIN_PATH
 
 
 def run_pipeline():

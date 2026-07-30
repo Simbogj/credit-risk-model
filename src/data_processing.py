@@ -1231,7 +1231,12 @@ if __name__ == '__main__':
         default='data/raw/data.csv',
         help='Path to raw transaction data'
     )
-    parser.add_argument('--output', type=str, default='data/processed/processed_customers.csv', help='Path to save processed data')
+    parser.add_argument(
+        '--output',
+        type=str,
+        default='data/processed/train_data.csv',
+        help='Path to save processed data',
+    )
     parser.add_argument('--apply-woe', action='store_true', help='Apply WoE transformation')
 
     args = parser.parse_args()
