@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy source code
 COPY src/ ./src/
-COPY data/processed_customers/ ./data/processed_customers/
+# COPY data/processed_customers/ ./data/processed_customers/
 
 # Expose API port
 EXPOSE 8000

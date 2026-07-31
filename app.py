@@ -11,9 +11,52 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import streamlit as st
+
+# Safe import of Streamlit
+try:
+    import streamlit as st
+except ModuleNotFoundError:
+    class _MockSt:
+        def warning(self, *args, **kwargs):
+            pass
+        def cache_data(self, func):
+            return func
+        def cache_resource(self, func):
+            return func
+        def set_page_config(self, **kwargs):
+            pass
+        def markdown(self, *args, **kwargs):
+            pass
+        def metric(self, *args, **kwargs):
+            pass
+        def subheader(self, *args, **kwargs):
+            pass
+        def header(self, *args, **kwargs):
+            pass
+        def write(self, *args, **kwargs):
+            pass
+        def columns(self, n):
+            return [_MockSt() for _ in range(n)]
+        def plotly_chart(self, *args, **kwargs):
+            pass
+        def sidebar(self):
+            return self
+        def selectbox(self, *args, **kwargs):
+            return None
+        def radio(self, *args, **kwargs):
+            return None
+        def button(self, *args, **kwargs):
+            return False
+    st = _MockSt()
+
+# Safe import of Plotly
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ModuleNotFoundError:
+    st.warning("Plotly not installed; visualizations will be disabled.")
+    px = None
+    go = None
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -26,6 +69,7 @@ from sklearn.metrics import (
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
+from paths import PATHS, PROCESSED_TRAIN_PATH, MODEL_PATH, FEATURES_PATH, METRICS_PATH, COMPARISON_PATH
 
 # Page config
 st.set_page_config(
@@ -36,12 +80,12 @@ st.set_page_config(
 )
 
 # Paths
-PROJECT_ROOT = Path(__file__).parent
-MODEL_PATH = PROJECT_ROOT / "models" / "DecisionTree_best.joblib"
-FEATURES_PATH = PROJECT_ROOT / "models" / "feature_names.joblib"
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "train_data.csv"
-METRICS_PATH = PROJECT_ROOT / "models" / "metrics_summary.json"
-COMPARISON_PATH = PROJECT_ROOT / "models" / "model_comparison.csv"
+PROJECT_ROOT = PATHS.project_root
+DATA_PATH = PROCESSED_TRAIN_PATH
+MODEL_PATH = PATHS.model
+FEATURES_PATH = PATHS.features
+METRICS_PATH = PATHS.metrics
+COMPARISON_PATH = PATHS.comparison
 
 # Custom CSS
 st.markdown("""
@@ -70,9 +114,43 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    """Load processed data."""
-    df = pd.read_csv(DATA_PATH)
-    return df
+    """Load processed data. If the default data file is missing, create a small synthetic dataset.
+    This ensures the dashboard runs even on a fresh clone without data.
+    """
+    if DATA_PATH.is_file():
+        return pd.read_csv(DATA_PATH)
+    else:
+        st.warning("Processed data not found. Using synthetic demo data.")
+        # Define minimal required columns for the dashboard and prediction pages
+        cols = [
+            "is_high_risk",
+            "AvgAmount",
+            "TransactionCount",
+            "TotalAmount",
+            "Recency",
+            "Frequency",
+            "Monetary",
+            "FraudRate",
+            "StdAmount",
+            "CreditRatio",
+            "DebitRatio",
+        ]
+        data = {
+            "is_high_risk": [0, 1],
+            "AvgAmount": [1200.0, 3000.0],
+            "TransactionCount": [10, 30],
+            "TotalAmount": [12000.0, 90000.0],
+            "Recency": [5, 20],
+            "Frequency": [15, 40],
+            "Monetary": [18000.0, 120000.0],
+            "FraudRate": [0.02, 0.15],
+            "StdAmount": [200.0, 600.0],
+            "CreditRatio": [0.2, 0.8],
+            "DebitRatio": [0.8, 0.2],
+        }
+        df = pd.DataFrame(data)
+        # Ensure column order matches expected
+        return df[cols]
 
 
 @st.cache_resource
@@ -118,7 +196,14 @@ def main():
     st.sidebar.header("🔧 Navigation")
     page = st.sidebar.radio(
         "Go to",
-        ["📈 Overview", "🔮 Model Performance", "📊 Feature Analysis", "🎯 Prediction", "ℹ️ About"]
+        [
+            "📈 Overview",
+            "🔮 Model Performance",
+            "📊 Feature Analysis",
+            "🔍 SHAP Explainability",
+            "🎯 Prediction",
+            "ℹ️ About",
+        ],
     )
     
     if page == "📈 Overview":
@@ -127,6 +212,8 @@ def main():
         performance_page(df, model, metrics)
     elif page == "📊 Feature Analysis":
         feature_analysis_page(df)
+    elif page == "🔍 SHAP Explainability":
+        shap_page(df, model, features)
     elif page == "🎯 Prediction":
         prediction_page(model, features)
     elif page == "ℹ️ About":
@@ -368,6 +455,88 @@ def feature_analysis_page(df):
         st.write(f"Count: {len(low_risk_df):,}")
         st.write(f"Avg Transaction Amount: ${low_risk_df['AvgAmount'].mean():,.2f}")
         st.write(f"Avg Transaction Count: {low_risk_df['TransactionCount'].mean():.1f}")
+
+
+def shap_page(df, model, features):
+    """SHAP-based model explainability for finance stakeholders."""
+    st.header("🔍 SHAP Explainability")
+    st.markdown(
+        "SHAP (SHapley Additive exPlanations) quantifies how each feature "
+        "contributes to individual and aggregate risk predictions — supporting "
+        "Basel II interpretability requirements."
+    )
+
+    if not DATA_PATH.is_file():
+        st.warning(
+            "Processed training data not found. Run `python setup_data.py --run` "
+            "for full SHAP analysis. Showing feature-importance fallback."
+        )
+        feature_analysis_page(df)
+        return
+
+    try:
+        import shap
+    except ImportError:
+        st.error("Install SHAP: `pip install shap>=0.44.0`")
+        return
+
+    X = df.drop(columns=["is_high_risk"], errors="ignore")
+    missing = [f for f in features if f not in X.columns]
+    if missing:
+        st.error(f"Training data missing {len(missing)} model features. Re-run the pipeline.")
+        return
+
+    X = X[features]
+    sample_size = min(500, len(X))
+    X_sample = X.sample(n=sample_size, random_state=42) if len(X) > sample_size else X
+
+    with st.spinner("Computing SHAP values..."):
+        import matplotlib.pyplot as plt
+
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_sample)
+        if isinstance(shap_values, list):
+            shap_values = shap_values[1]
+
+    st.subheader("Global Feature Impact")
+    st.markdown("Which features drive risk scores across the customer portfolio?")
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    shap.summary_plot(shap_values, X_sample, show=False, max_display=15)
+    st.pyplot(plt.gcf())
+    plt.clf()
+
+    st.markdown("---")
+    st.subheader("Local Explanation — Single Customer")
+    st.markdown("Why did the model assign this risk level to a specific applicant?")
+
+    idx = st.slider("Customer index", 0, len(X_sample) - 1, 0)
+    row = X_sample.iloc[[idx]]
+    pred = model.predict(row)[0]
+    proba = model.predict_proba(row)[0][1]
+    risk_label = "High Risk" if pred == 1 else "Low Risk"
+    st.info(f"Prediction: **{risk_label}** | High-risk probability: **{proba:.1%}**")
+
+    expected = explainer.expected_value
+    if isinstance(expected, list):
+        expected = expected[1]
+
+    plt.figure()
+    shap.force_plot(expected, shap_values[idx], row, matplotlib=True, show=False)
+    st.pyplot(plt.gcf())
+    plt.clf()
+
+    st.markdown("---")
+    st.subheader("Governance Notes")
+    st.markdown(
+        """
+        - **Global plots** support model validation committees and regulatory review.
+        - **Local plots** document individual credit decisions for audit trails.
+        - Re-run SHAP after retraining or when feature distributions shift materially.
+        """
+    )
 
 
 def prediction_page(model, features):
