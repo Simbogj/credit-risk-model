@@ -122,7 +122,7 @@ def main():
     )
     
     if page == "📈 Overview":
-        overview_page(df, metrics, comparison)
+        overview_page(df, metrics, comparison, features)
     elif page == "🔮 Model Performance":
         performance_page(df, model, metrics)
     elif page == "📊 Feature Analysis":
@@ -133,7 +133,7 @@ def main():
         about_page()
 
 
-def overview_page(df, metrics, comparison):
+def overview_page(df, metrics, comparison, features):
     """Overview dashboard page."""
     st.header("📈 Project Overview")
     
@@ -173,7 +173,7 @@ def overview_page(df, metrics, comparison):
         xaxis_title='Model',
         legend_title='Metric'
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
@@ -182,8 +182,8 @@ def overview_page(df, metrics, comparison):
     
     with col1:
         st.subheader("🎖️ Best Model")
-        st.success(f"**{metrics['best_model']}**")
-        st.write(f"ROC-AUC: **{metrics['best_roc_auc']:.4f}**")
+        st.success(f"**{metrics.get('best_model', 'N/A')}**")
+        st.write(f"ROC-AUC: **{metrics.get('roc_auc', metrics.get('best_roc_auc', 0)):.4f}**")
     
     with col2:
         st.subheader("📋 All Metrics")
@@ -204,7 +204,7 @@ def overview_page(df, metrics, comparison):
         hole=0.4
     )
     fig.update_traces(marker=dict(colors=['#2ecc71', '#e74c3c']))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def performance_page(df, model, metrics):
@@ -223,15 +223,15 @@ def performance_page(df, model, metrics):
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        st.metric("Accuracy", f"{metrics['best_accuracy']:.2%}")
+        st.metric("Accuracy", f"{metrics.get('accuracy', metrics.get('best_accuracy', 0)):.2%}")
     with col2:
-        st.metric("ROC-AUC", f"{metrics['best_roc_auc']:.4f}")
+        st.metric("ROC-AUC", f"{metrics.get('roc_auc', metrics.get('best_roc_auc', 0)):.4f}")
     with col3:
-        st.metric("Precision", f"{metrics['best_precision']:.2%}")
+        st.metric("Precision", f"{metrics.get('precision', metrics.get('best_precision', 0)):.2%}")
     with col4:
-        st.metric("Recall", f"{metrics['best_recall']:.2%}")
+        st.metric("Recall", f"{metrics.get('recall', metrics.get('best_recall', 0)):.2%}")
     with col5:
-        st.metric("F1 Score", f"{metrics['best_f1']:.2%}")
+        st.metric("F1 Score", f"{metrics.get('f1', metrics.get('best_f1', 0)):.2%}")
     
     st.markdown("---")
     
@@ -255,7 +255,7 @@ def performance_page(df, model, metrics):
         height=400,
         width=500
     )
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, width='content')
     
     st.markdown("---")
     
@@ -284,7 +284,7 @@ def performance_page(df, model, metrics):
         height=400
     )
     fig.update_traces(opacity=0.7)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def feature_analysis_page(df):
@@ -324,7 +324,7 @@ def feature_analysis_page(df):
         height=600,
         yaxis=dict(autorange="reversed")
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
@@ -346,7 +346,7 @@ def feature_analysis_page(df):
         xaxis_title='Correlation',
         yaxis=dict(autorange="reversed")
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
