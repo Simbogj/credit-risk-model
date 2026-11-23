@@ -2,7 +2,7 @@
 
 ![CI/CD](https://github.com/Simbogj/credit-risk-model/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
-![Tests](https://img.shields.io/badge/tests-53%20passing-brightgreen.svg)
+![Tests](<https://img.shields.io/badge/tests-53%20passing-brightgreen.svg>)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 **A production-grade credit risk scoring system for Bati Bank's buy-now-pay-later platform — built for reliability, transparency, and finance-sector compliance.**
@@ -35,15 +35,15 @@ This project delivers an end-to-end scoring product: feature engineering, model 
 
 ## Key Results
 
-| Metric | Score | Business meaning |
-|--------|-------|------------------|
-| **ROC-AUC** | 1.0000 | Perfect rank-ordering of risk (proxy target) |
-| **Accuracy** | 99.20% | Correct risk classification rate |
-| **Precision** | 99.86% | Low false-approval rate |
-| **Recall** | 99.31% | High-risk customers identified |
-| **Customers scored** | 3,742 | Full portfolio coverage |
-| **Features engineered** | 70 | Rich behavioral profile per customer |
-| **Unit tests** | 53 passing | Automated correctness checks |
+| Metric                        | Score      | Business meaning                             |
+| ----------------------------- | ---------- | -------------------------------------------- |
+| **ROC-AUC**             | 1.0000     | Perfect rank-ordering of risk (proxy target) |
+| **Accuracy**            | 99.20%     | Correct risk classification rate             |
+| **Precision**           | 99.86%     | Low false-approval rate                      |
+| **Recall**              | 99.31%     | High-risk customers identified               |
+| **Customers scored**    | 3,742      | Full portfolio coverage                      |
+| **Features engineered** | 70         | Rich behavioral profile per customer         |
+| **Unit tests**          | 53 passing | Automated correctness checks                 |
 
 > Metrics reflect proxy-target performance. Validation against actual defaults is planned once outcome data matures.
 
@@ -140,14 +140,14 @@ credit-risk-model/
 
 ## Dashboard Features
 
-| Page | Purpose |
-|------|---------|
-| **Overview** | Portfolio metrics, model comparison, risk distribution |
-| **Model Performance** | Confusion matrix, classification report, probability histogram |
-| **Feature Analysis** | Importance rankings and risk correlations |
-| **SHAP Explainability** | Global impact + per-customer decision drivers |
-| **Prediction** | Interactive applicant scoring with approve/review/decline |
-| **About** | Business context and Basel II alignment |
+| Page                          | Purpose                                                        |
+| ----------------------------- | -------------------------------------------------------------- |
+| **Overview**            | Portfolio metrics, model comparison, risk distribution         |
+| **Model Performance**   | Confusion matrix, classification report, probability histogram |
+| **Feature Analysis**    | Importance rankings and risk correlations                      |
+| **SHAP Explainability** | Global impact + per-customer decision drivers                  |
+| **Prediction**          | Interactive applicant scoring with approve/review/decline      |
+| **About**               | Business context and Basel II alignment                        |
 
 ---
 
@@ -184,12 +184,12 @@ Every push to `main` / `develop` and every PR triggers:
 
 ## Regulatory Alignment (Basel II)
 
-| Requirement | Implementation |
-|-------------|----------------|
-| Interpretability | Decision Tree rules + SHAP force plots |
-| Documentation | `REPORT.md`, README, inline docstrings |
-| Audit trail | Versioned models in `models/`, MLflow tracking |
-| Monitoring | Health endpoint, drift/retraining guidance in report |
+| Requirement      | Implementation                                       |
+| ---------------- | ---------------------------------------------------- |
+| Interpretability | Decision Tree rules + SHAP force plots               |
+| Documentation    | `REPORT.md`, README, inline docstrings             |
+| Audit trail      | Versioned models in `models/`, MLflow tracking     |
+| Monitoring       | Health endpoint, drift/retraining guidance in report |
 
 ---
 

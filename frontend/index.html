@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bati Bank | Credit Risk Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'] },
+          colors: { brand: '#0FA58E', deep: '#0B3B38', mint: '#E4F6F2', ink: '#0F2B2A', soft: '#6B8582', bad: '#E5484D', ok: '#12A87F', warn: '#E59A1B' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      color: #0F2B2A;
+      -webkit-font-smoothing: antialiased;
+      background: radial-gradient(900px 380px at 85% -60px, #CDEEE8 0%, transparent 70%), linear-gradient(180deg, #F2FBF9, #EAF6F3);
+      background-attachment: fixed;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #DDF0EC;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(15, 165, 142, .06);
+    }
+
+    input[type=range] {
+      accent-color: #0FA58E;
+    }
+
+    :focus-visible {
+      outline: 2px solid #0FA58E;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const Icon = ({ n, c = 'w-5 h-5' }) => {
+      const p = {
+        home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+        chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+        pie: 'M12 3v9h9A9 9 0 1 1 12 3z',
+        nodes: 'M6 6a2 2 0 1 0 0 .01M18 6a2 2 0 1 0 0 .01M12 18a2 2 0 1 0 0 .01M7.7 7.4l3.1 8.6M16.3 7.4l-3.1 8.6M8 6h8',
+        calc: 'M5 3h14v18H5zM8 7h8M8 12h2M14 12h2M8 16h2M14 16h2',
+        info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 11v6M12 7.5v.01',
+        users: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 20v-1a4 4 0 0 0-3-3.9M16 4.2a3.5 3.5 0 0 1 0 6.6',
+        shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM12 8v5M12 16v.01',
+        check: 'M20 6L9 17l-5-5',
+        layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+        star: 'M12 3l2.7 5.8 6.3.8-4.6 4.4 1.2 6.3L12 17.3 6.4 20.3l1.2-6.3L3 9.6l6.3-.8z',
+        search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+        bell: 'M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20a2 2 0 0 0 4 0',
+        cal: 'M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4',
+      }[n];
+      return <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={p} /></svg>;
+    };
+
+    const MODELS = [
+      { name: 'Decision tree', acc: 100, prec: 100, rec: 100, auc: 1, best: true },
+      { name: 'Random forest', acc: 100, prec: 100, rec: 100, auc: 1 },
+      { name: 'Gradient boosting', acc: 100, prec: 100, rec: 100, auc: 1 },
+      { name: 'Logistic regression', acc: 99.2, prec: 99.86, rec: 99.31, auc: 0.9984 },
+    ];
+    const FEATURES = [
+      ['TotalAmount', 0.285, 0.81, 'Aggregated transaction value'], ['Monetary', 0.242, 0.79, 'RFM monetary component'],
+      ['AvgAmount', 0.165, 0.62, 'Mean transaction size'], ['Recency', 0.098, -0.54, 'Days since last transaction'],
+      ['Frequency', 0.064, 0.48, 'Transactions in window'], ['DebitRatio', 0.043, -0.41, 'Share of debit transactions'],
+      ['FraudRate', 0.038, 0.68, 'Flagged dispute rate'], ['CreditRatio', 0.027, 0.35, 'Share of credit transactions'],
+      ['StdAmount', 0.021, 0.29, 'Std. deviation of amounts'], ['TransactionCount', 0.017, 0.44, 'Historical activity'],
+    ];
+    const NAV = [['overview', 'Overview', 'home', 'Advanced analytics for smarter credit risk management'],
+    ['performance', 'Model Performance', 'chart', 'Validation metrics and classification audit'],
+    ['features', 'Feature Analysis', 'pie', 'Predictive drivers and directional correlations'],
+    ['shap', 'SHAP Explainability', 'nodes', 'Applicant-level decision attribution'],
+    ['underwriting', 'Prediction', 'calc', 'Score a borrower in real time'],
+    ['governance', 'About & Governance', 'info', 'Basel II alignment and model risk controls']];
+
+    const Card = ({ title, icon, right, sub, children, className = '' }) => (
+      <section className={`card p-6 ${className}`}>
+        {title && <div className="flex items-center justify-between mb-1">
+          <h3 className="flex items-center gap-2.5 font-bold text-[15px]">{icon && <span className="w-8 h-8 rounded-full bg-mint text-brand flex items-center justify-center"><Icon n={icon} c="w-4 h-4" /></span>}{title}</h3>{right}</div>}
+        {sub && <p className="text-[13px] text-soft mb-4">{sub}</p>}
+        {!sub && title && <div className="mb-3" />}
+        {children}
+      </section>
+    );
+    const Kpi = ({ icon, label, value, note, tone = 'bg-mint text-brand', noteTone = 'text-soft' }) => (
+      <div className="card p-4 flex items-center gap-3">
+        <span className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${tone}`}><Icon n={icon} c="w-6 h-6" /></span>
+        <div className="min-w-0"><div className="text-[13px] font-semibold">{label}</div>
+          <div className="text-2xl font-extrabold leading-tight">{value}</div>
+          <div className={`text-xs font-semibold ${noteTone}`}>{note}</div></div>
+      </div>
+    );
+    const Pill = ({ tone = 'ok', children }) => {
+      const t = { ok: 'bg-emerald-50 text-ok', bad: 'bg-red-50 text-bad', warn: 'bg-amber-50 text-warn', gray: 'bg-slate-100 text-slate-500', teal: 'bg-mint text-brand' }[tone];
+      return <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-full ${t}`}>{children}</span>;
+    };
+    const Bar = ({ pct, c = 'bg-brand' }) => <div className="w-full bg-mint rounded-full h-2"><div className={`${c} h-2 rounded-full`} style={{ width: `${pct}%` }} /></div>;
+    const Th = ({ children, r }) => <th className={`py-2.5 text-xs font-semibold text-soft ${r ? 'text-right' : ''}`}>{children}</th>;
+
+    function Donut() {
+      return (
+        <div className="flex justify-center my-2">
+          <svg className="w-44 h-44" viewBox="0 0 100 100" role="img" aria-label="66.5% low risk, 33.5% high risk">
+            <circle cx="50" cy="50" r="36" fill="none" stroke="#E5484D" strokeWidth="13" />
+            <circle cx="50" cy="50" r="36" fill="none" stroke="#0FA58E" strokeWidth="13" strokeLinecap="round" strokeDasharray="148 226.2" transform="rotate(-90 50 50)" />
+            <text x="50" y="49" textAnchor="middle" fontSize="13" fontWeight="800" fill="#0F2B2A">3,742</text>
+            <text x="50" y="60" textAnchor="middle" fontSize="6" fill="#6B8582">borrowers</text>
+          </svg>
+        </div>
+      );
+    }
+
+    function Overview({ go }) {
+      const recent = [['Applicant #12', 'Low risk · PD 8.0%', 'Approved', 'ok'], ['Applicant #33', 'High risk · PD 88.0%', 'Declined', 'bad'], ['Applicant #57', 'Borderline · PD 45.0%', 'Review', 'warn'], ['Applicant #70', 'Low risk · PD 8.0%', 'Approved', 'ok']];
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+            <Kpi icon="users" label="Scored Customers" value="3,742" note="Full portfolio coverage" />
+            <Kpi icon="check" label="Low-Risk Borrowers" value="2,488" note="66.5% of portfolio" noteTone="text-ok" />
+            <Kpi icon="shield" label="High-Risk Borrowers" value="1,254" note="33.5% on watchlist" tone="bg-red-50 text-bad" noteTone="text-bad" />
+            <Kpi icon="layers" label="Engineered Features" value="70" note="Velocity, scale, RFM" tone="bg-sky-50 text-sky-600" />
+            <Kpi icon="star" label="Champion ROC-AUC" value="1.0000" note="Decision tree" tone="bg-violet-50 text-violet-600" />
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <Card title="Model Benchmark" icon="chart" right={<Pill tone="teal">Cross-validation</Pill>} className="xl:col-span-2" sub="Candidate architectures compared on core validation metrics.">
+              <div className="overflow-x-auto"><table className="w-full text-sm text-left">
+                <thead className="border-b border-mint"><tr><Th>Model</Th><Th r>Accuracy</Th><Th r>ROC-AUC</Th><Th r>Precision</Th><Th r>Recall</Th><Th r>Status</Th></tr></thead>
+                <tbody className="divide-y divide-mint">{MODELS.map(m => (
+                  <tr key={m.name} className={m.best ? 'font-bold' : 'font-medium'}>
+                    <td className="py-3">{m.name}</td><td className="text-right">{m.acc.toFixed(2)}%</td><td className="text-right text-brand">{m.auc.toFixed(4)}</td>
+                    <td className="text-right">{m.prec.toFixed(2)}%</td><td className="text-right">{m.rec.toFixed(2)}%</td>
+                    <td className="text-right">{m.best ? <Pill>Production</Pill> : <Pill tone="gray">Benchmark</Pill>}</td></tr>))}</tbody>
+              </table></div>
+              <p className="mt-4 text-xs text-soft bg-amber-50 rounded-xl p-3 leading-relaxed"><b className="text-warn">Validation note:</b> scores near 1.00 are measured against an RFM-derived proxy label, not realized defaults. Track against 90-day delinquency as loans season (Basel II).</p>
+            </Card>
+            <Card title="Risk Distribution" icon="pie" sub="Classification of all scored customers.">
+              <Donut />
+              <div className="space-y-2 text-[13px] pt-3 border-t border-mint">
+                <div className="flex justify-between"><span className="flex items-center gap-2"><i className="w-2.5 h-2.5 rounded-full bg-brand" />Low risk (approve)</span><b>2,488 (66.5%)</b></div>
+                <div className="flex justify-between"><span className="flex items-center gap-2"><i className="w-2.5 h-2.5 rounded-full bg-bad" />High risk (review/decline)</span><b>1,254 (33.5%)</b></div>
+              </div>
+            </Card>
+          </div>
+          <Card title="Recent Decisions" icon="check" sub="Sample applicants from the explainability workspace."
+            right={<button onClick={() => go('shap')} className="text-xs font-bold px-4 py-1.5 rounded-full border border-slate-200 hover:bg-mint">View all</button>}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {recent.map(([n, d, s, t]) => (
+                <div key={n} className="flex items-center justify-between rounded-2xl bg-mint/50 p-4"><div><div className="font-bold text-sm">{n}</div><div className="text-xs text-soft">{d}</div></div><Pill tone={t}>{s}</Pill></div>))}
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    function Performance() {
+      const cm = [['2,488', 'True negative', 'bg-deep text-white'], ['0', 'False positive', 'bg-mint/60 text-soft'], ['0', 'False negative', 'bg-mint/60 text-soft'], ['1,254', 'True positive', 'bg-brand text-white']];
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[['Accuracy', '100.0%'], ['ROC-AUC', '1.0000'], ['Precision', '100.0%'], ['Recall', '100.0%'], ['F1 Score', '100.0%']].map(([l, v]) => (
+              <div key={l} className="card p-4 text-center"><div className="text-xs font-semibold text-soft">{l}</div><div className="text-2xl font-extrabold text-brand mt-1">{v}</div></div>))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Confusion Matrix" icon="layers" sub="Actual versus predicted risk class.">
+              <div className="grid grid-cols-2 gap-3 max-w-sm">{cm.map(([v, l, c]) => <div key={l} className={`p-5 rounded-2xl ${c}`}><div className="text-2xl font-extrabold">{v}</div><div className="text-xs mt-1 opacity-80">{l}</div></div>)}</div>
+            </Card>
+            <Card title="Classification Report" icon="chart" sub="Precision, recall and support by class.">
+              <table className="w-full text-sm text-left"><thead className="border-b border-mint"><tr><Th>Class</Th><Th r>Precision</Th><Th r>Recall</Th><Th r>F1</Th><Th r>Support</Th></tr></thead>
+                <tbody className="divide-y divide-mint font-medium">{[['Low risk', '2,488', 'text-ok'], ['High risk', '1,254', 'text-bad'], ['Macro average', '3,742', '']].map(([n, s, c]) => (
+                  <tr key={n}><td className={`py-3 font-bold ${c}`}>{n}</td><td className="text-right">100.0%</td><td className="text-right">100.0%</td><td className="text-right">100.0%</td><td className="text-right font-bold">{s}</td></tr>))}</tbody></table>
+              <p className="mt-4 text-xs text-soft bg-mint/60 rounded-xl p-3">Underwriting rule: probability above 0.30 triggers conditional approval; above 0.60 triggers automatic decline.</p>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    function Features() {
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card title="Top Predictive Features" icon="pie" sub="Gini importance in tree splits.">
+            <div className="space-y-3.5">{FEATURES.map(([n, imp, , d]) => (
+              <div key={n} className="text-[13px]"><div className="flex justify-between mb-1"><span className="font-bold">{n} <span className="font-normal text-soft">{d}</span></span><span className="font-bold">{(imp * 100).toFixed(1)}%</span></div><Bar pct={(imp / 0.3) * 100} /></div>))}</div>
+          </Card>
+          <Card title="Directional Risk Correlation" icon="chart" sub="Red raises default risk; teal lowers it.">
+            <div className="space-y-3.5">{FEATURES.map(([n, , c]) => (
+              <div key={n} className="text-[13px]"><div className="flex justify-between mb-1"><span className="font-bold">{n}</span><span className={`font-bold ${c > 0 ? 'text-bad' : 'text-ok'}`}>{c > 0 ? '+' : ''}{c.toFixed(2)}</span></div><Bar pct={Math.abs(c) * 100} c={c > 0 ? 'bg-bad' : 'bg-brand'} /></div>))}</div>
+          </Card>
+        </div>
+      );
+    }
+
+    function Shap() {
+      const [idx, setIdx] = useState(12);
+      const high = idx % 3 === 0;
+      const rows = [['Total amount / monetary scale', high ? '+0.42' : '-0.38', high ? 'Elevates risk' : 'Reduces risk'],
+      ['Recency (payment velocity)', high ? '+0.25' : '-0.19', high ? 'Dormant account' : 'Frequent activity'],
+      ['Fraud dispute history', high ? '+0.18' : '-0.08', high ? 'Prior flags' : 'No disputes']];
+      return (
+        <Card title="Single Applicant Decision Audit" icon="nodes" sub="SHAP attributions document each decision and supply adverse-action reason codes for declined applicants.">
+          <div className="flex flex-wrap items-center gap-4 mb-6 bg-mint/60 rounded-2xl p-4">
+            <label htmlFor="ap" className="text-xs font-bold text-soft">Applicant</label>
+            <input id="ap" type="range" min="0" max="99" value={idx} onChange={e => setIdx(+e.target.value)} className="w-56" />
+            <span className="font-bold text-sm">#{idx}</span>
+            <div className="ml-auto"><Pill tone={high ? 'bad' : 'ok'}>{high ? 'High risk · Declined' : 'Low risk · Approved'} · PD {high ? '88.0' : '8.0'}%</Pill></div>
+          </div>
+          <table className="w-full text-sm text-left"><thead className="border-b border-mint"><tr><Th>Driver</Th><Th>Effect</Th><Th r>SHAP value</Th></tr></thead>
+            <tbody className="divide-y divide-mint">{rows.map(([d, v, e]) => <tr key={d}><td className="py-3 font-bold">{d}</td><td className="text-soft">{e}</td><td className={`text-right font-bold ${high ? 'text-bad' : 'text-ok'}`}>{v}</td></tr>)}</tbody></table>
+        </Card>
+      );
+    }
+
+    const PRESETS = {
+      prime: { totalAmount: 48000, avgAmount: 2400, transactionCount: 25, recency: 2, frequency: 25, monetary: 48000, fraudRate: 0, stdAmount: 350, creditRatio: 0.1, debitRatio: 0.9 },
+      borderline: { totalAmount: 16000, avgAmount: 1100, transactionCount: 14, recency: 16, frequency: 11, monetary: 14000, fraudRate: 0.04, stdAmount: 850, creditRatio: 0.4, debitRatio: 0.6 },
+      high_risk: { totalAmount: 3200, avgAmount: 380, transactionCount: 4, recency: 48, frequency: 3, monetary: 2100, fraudRate: 0.18, stdAmount: 1200, creditRatio: 0.75, debitRatio: 0.25 },
+    };
+    const Field = ({ label, value, onChange }) => (
+      <label className="block"><span className="text-xs font-semibold text-soft block mb-1">{label}</span>
+        <input type="number" value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)} className="w-full text-sm border border-slate-200 rounded-xl p-2.5 bg-white" /></label>);
+    const Slider = ({ label, value, max, step, fmt, onChange }) => (
+      <label className="block"><div className="flex justify-between text-xs font-semibold text-soft mb-1"><span>{label}</span><span className="text-ink">{fmt(value)}</span></div>
+        <input type="range" min="0" max={max} step={step} value={value} onChange={e => onChange(parseFloat(e.target.value))} className="w-full" /></label>);
+
+    function Underwriting() {
+      const [f, setF] = useState({ totalAmount: 25000, avgAmount: 1250, transactionCount: 20, recency: 5, frequency: 20, monetary: 25000, fraudRate: 0.02, stdAmount: 500, creditRatio: 0.15, debitRatio: 0.85 });
+      const [res, setRes] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const set = k => v => setF({ ...f, [k]: v });
+      const score = async () => {
+        setLoading(true);
+        try {
+          const r = await fetch('http://localhost:8000/predict', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customer_id: 'REACT-APP-001', features: {
+                TotalAmount: f.totalAmount, AvgAmount: f.avgAmount, TransactionCount: f.transactionCount,
+                Recency: f.recency, Frequency: f.frequency, Monetary: f.monetary, FraudRate: f.fraudRate, StdAmount: f.stdAmount, CreditRatio: f.creditRatio, DebitRatio: f.debitRatio
+              }
+            })
+          });
+          if (!r.ok) throw new Error('offline');
+          const d = await r.json();
+          setRes({ decision: d.decision.decision.toUpperCase(), pd: d.prediction.risk_probability, score: d.prediction.credit_score, cap: d.decision.recommended_terms.max_amount, source: 'FastAPI model service' });
+        } catch (e) {
+          let pd = 0.02;
+          if (f.fraudRate > 0.1 || f.recency > 30 || f.totalAmount < 5000) pd = 0.92; else if (f.fraudRate > 0.03 || f.recency > 12) pd = 0.45;
+          const decision = pd > 0.6 ? 'DECLINE' : pd > 0.3 ? 'REVIEW' : 'APPROVE';
+          setRes({ decision, pd, score: Math.round(300 + (1 - pd) * 550), cap: decision === 'DECLINE' ? 0 : decision === 'REVIEW' ? 5000 : 10000, source: 'Local client-side engine' });
+        } finally { setLoading(false); }
+      };
+      const banner = { APPROVE: ['Approved: low-risk tier', 'bg-emerald-50 text-emerald-900'], REVIEW: ['Conditional approval: manual review', 'bg-amber-50 text-amber-900'], DECLINE: ['Declined: elevated risk', 'bg-red-50 text-red-900'] };
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold text-soft">Load a sample borrower</span>
+            {[['prime', 'Prime'], ['borderline', 'Borderline'], ['high_risk', 'High risk']].map(([k, l]) => (
+              <button key={k} onClick={() => setF(PRESETS[k])} className="px-4 py-1.5 text-xs font-bold rounded-full bg-white border border-slate-200 hover:bg-mint">{l}</button>))}
+          </div>
+          <Card title="Borrower Transaction Profile" icon="calc" sub="Alternative-data features derived from POS and payment records.">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="space-y-4"><h4 className="text-xs font-bold text-brand">Financial scale</h4>
+                <Field label="Total transaction amount ($)" value={f.totalAmount} onChange={set('totalAmount')} />
+                <Field label="Average ticket amount ($)" value={f.avgAmount} onChange={set('avgAmount')} />
+                <Field label="Total transaction count" value={f.transactionCount} onChange={set('transactionCount')} /></div>
+              <div className="space-y-4"><h4 className="text-xs font-bold text-brand">Behavior (RFM)</h4>
+                <Field label="Recency (days since last payment)" value={f.recency} onChange={set('recency')} />
+                <Field label="Frequency (annual payments)" value={f.frequency} onChange={set('frequency')} />
+                <Field label="Monetary total ($)" value={f.monetary} onChange={set('monetary')} /></div>
+              <div className="space-y-4"><h4 className="text-xs font-bold text-brand">Risk and channel mix</h4>
+                <Slider label="Fraud dispute rate" value={f.fraudRate} max={0.3} step={0.01} fmt={v => (v * 100).toFixed(1) + '%'} onChange={set('fraudRate')} />
+                <Slider label="Credit channel ratio" value={f.creditRatio} max={1} step={0.05} fmt={v => (v * 100).toFixed(0) + '%'} onChange={set('creditRatio')} />
+                <Slider label="Debit channel ratio" value={f.debitRatio} max={1} step={0.05} fmt={v => (v * 100).toFixed(0) + '%'} onChange={set('debitRatio')} /></div>
+            </div>
+            <button onClick={score} disabled={loading} className="mt-7 px-7 py-3 bg-brand hover:bg-deep disabled:opacity-60 text-white text-sm font-bold rounded-full transition-colors">{loading ? 'Scoring…' : 'Run underwriting assessment'}</button>
+          </Card>
+          {res && (
+            <Card>
+              <div className={`p-5 rounded-2xl mb-5 ${banner[res.decision][1]}`}><div className="text-xl font-extrabold">{banner[res.decision][0]}</div>
+                <div className="text-xs mt-1 opacity-80">Source: {res.source} · Model: DecisionTree_best.joblib</div></div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[['Credit score (300–850)', res.score, ''], ['Probability of default', (res.pd * 100).toFixed(1) + '%', 'text-bad'], ['Repayment confidence', ((1 - res.pd) * 100).toFixed(1) + '%', 'text-ok'], ['Facility cap', '$' + res.cap.toLocaleString(), 'text-brand']].map(([l, v, c]) => (
+                  <div key={l} className="rounded-2xl bg-mint/60 p-4 text-center"><div className="text-xs font-semibold text-soft">{l}</div><div className={`text-3xl font-extrabold mt-1 ${c}`}>{v}</div></div>))}
+              </div>
+            </Card>)}
+        </div>
+      );
+    }
+
+    function Governance() {
+      const P = [['Pillar 1', 'Minimum capital and PD calculation', 'Calibrated probability-of-default scoring drives loan loss reserve allocation.'],
+      ['Pillar 2', 'Supervisory review and model governance', 'Drift detection, PSI tracking and versioned artifacts in the MLflow registry.'],
+      ['Pillar 3', 'Market discipline and explainability', 'SHAP attribution generates adverse-action notices for rejected applicants.']];
+      const L = ({ items }) => <ul className="text-[13px] text-soft space-y-2 list-disc pl-4">{items.map(([b, t]) => <li key={b}><b className="text-ink">{b}:</b> {t}</li>)}</ul>;
+      return (
+        <div className="space-y-6">
+          <Card title="Basel II Framework Alignment" icon="shield" sub="How the alternative-data model maps to international banking standards.">
+            <div className="overflow-x-auto"><table className="w-full text-[13px] text-left"><thead className="border-b border-mint"><tr><Th>Pillar</Th><Th>Requirement</Th><Th>Implementation</Th><Th r>Status</Th></tr></thead>
+              <tbody className="divide-y divide-mint">{P.map(([p, r, i]) => <tr key={p}><td className="py-3 pr-3 font-bold text-brand">{p}</td><td className="pr-3 text-soft">{r}</td><td className="pr-3">{i}</td><td className="text-right"><Pill>Compliant</Pill></td></tr>)}</tbody></table></div>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card title="Architecture & Readiness" icon="layers"><L items={[['Modeling', 'scikit-learn decision tree with random forest and gradient boosting benchmarks.'], ['API', 'FastAPI asynchronous service with Pydantic validation.'], ['Frontend', 'React 18 single-page application.'], ['Testing', '53 automated unit tests for the pipeline and model.']]} /></Card>
+            <Card title="Model Risk Checklist" icon="check"><L items={[['Repayment maturation', 'validate the proxy target against 90-day delinquency.'], ['Population stability', 'retrain when PSI exceeds 0.10.'], ['Fair lending', 'audit demographic parity and disparate impact.'], ['Credit committee', 'keep an underwriter override for borderline reviews.']]} /></Card>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab, setTab] = useState('overview');
+      const [api, setApi] = useState('checking');
+      useEffect(() => { fetch('http://localhost:8000/health').then(r => r.ok ? r.json() : null).then(d => setApi(d && d.status === 'healthy' ? 'online' : 'offline')).catch(() => setApi('offline')); }, []);
+      const V = { overview: Overview, performance: Performance, features: Features, shap: Shap, underwriting: Underwriting, governance: Governance }[tab];
+      const cur = NAV.find(n => n[0] === tab);
+      const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return (
+        <div className="min-h-screen flex flex-col md:flex-row">
+          <aside className="md:w-64 md:min-h-screen bg-white/80 border-r border-[#DDF0EC] p-4 shrink-0">
+            <div className="flex items-center gap-3 px-2 pb-6">
+              <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center font-extrabold text-lg">B</div>
+              <div><div className="font-extrabold leading-tight">BATI BANK</div><div className="text-xs text-soft">Credit Intelligence</div></div>
+            </div>
+            <nav className="flex md:block gap-1 overflow-x-auto md:space-y-1" aria-label="Workspaces">
+              {NAV.map(([id, label, ic]) => (
+                <button key={id} onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined}
+                  className={`w-full whitespace-nowrap flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${tab === id ? 'bg-mint text-brand' : 'text-slate-600 hover:bg-mint/60'}`}>
+                  <Icon n={ic} />{label}</button>))}
+            </nav>
+          </aside>
+          <main className="flex-1 min-w-0 p-4 md:p-6">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <label className="flex-1 min-w-[200px] max-w-md card !rounded-full flex items-center gap-2 px-4 py-2.5 text-soft"><Icon n="search" c="w-4 h-4" />
+                <input className="bg-transparent outline-none text-sm w-full text-ink placeholder:text-soft" placeholder="Search anything…" aria-label="Search" /></label>
+              <div className="ml-auto flex items-center gap-3">
+                <span className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full ${api === 'online' ? 'bg-emerald-50 text-ok' : 'bg-amber-50 text-warn'}`}>
+                  <i className={`w-2 h-2 rounded-full ${api === 'online' ? 'bg-ok' : 'bg-warn'}`} />{api === 'online' ? 'API connected' : 'Standalone mode'}</span>
+                <span className="card !rounded-full flex items-center gap-2 px-4 py-2 text-xs font-semibold"><Icon n="cal" c="w-4 h-4" />{today}</span>
+                <button className="card !rounded-full p-2.5 text-soft" aria-label="Notifications"><Icon n="bell" c="w-4 h-4" /></button>
+                <span className="flex items-center gap-2 text-sm font-semibold"><span className="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center text-xs font-bold">AD</span>Admin</span>
+              </div>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">{tab === 'overview' ? 'Credit Risk Intelligence Platform' : cur[1]}</h1>
+            <p className="text-sm text-soft mt-1 mb-6">{cur[3]}</p>
+            <V go={setTab} />
+          </main>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>

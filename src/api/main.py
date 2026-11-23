@@ -17,7 +17,7 @@ import numpy as np
 import uvicorn
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from pydantic_models import (
     BatchPredictionItem,
@@ -45,6 +45,8 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 MODEL_DIR = PROJECT_ROOT / "models"
 DATA_DIR = PROJECT_ROOT / "data"
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+FRONTEND_INDEX = FRONTEND_DIR / "index.html"
 
 DEFAULT_MODEL_NAME = 'CreditRiskModel'
 DEFAULT_MODEL_STAGE = 'Production'
@@ -67,43 +69,51 @@ def load_model(
     model_name: str = DEFAULT_MODEL_NAME,
     stage: str = DEFAULT_MODEL_STAGE
 ) -> Any:
-    """Load the trained model from MLflow registry or local storage."""
+    """Load the trained model from local storage or MLflow registry."""
     global model, model_version, feature_names
 
     logger.info(f"Loading model: {model_name} (stage: {stage})")
 
-    try:
-        mlflow_tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
-        mlflow.set_tracking_uri(mlflow_tracking_uri)
+    # 1. Check local storage first for fast, reliable startup
+    candidate_paths = [
+        MODEL_DIR / f"{model_name}_best.joblib",
+        MODEL_DIR / "DecisionTree_best.joblib",
+        MODEL_DIR / "model.joblib",
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            logger.info(f"Loading local model: {p}")
+            model = joblib.load(p)
+            model_version = f"local-{p.stem}"
+            break
 
-        client = mlflow.MlflowClient()
-        model_uri = f"models:/{model_name}/{stage}"
+    # 2. Try MLflow if explicitly configured
+    if model is None and "MLFLOW_TRACKING_URI" in os.environ:
+        try:
+            mlflow_tracking_uri = os.environ["MLFLOW_TRACKING_URI"]
+            mlflow.set_tracking_uri(mlflow_tracking_uri)
+            model_uri = f"models:/{model_name}/{stage}"
+            model = mlflow.sklearn.load_model(model_uri)
+            model_version = f"mlflow-{model_name}-{stage}"
+            logger.info("Model loaded from MLflow Registry successfully")
+        except Exception as e:
+            logger.warning(f"Could not load from MLflow: {e}")
 
-        logger.info(f"Loading from MLflow: {model_uri}")
-        model = mlflow.sklearn.load_model(model_uri)
-        model_version = f"mlflow-{model_name}-{stage}"
-        logger.info("Model loaded from MLflow Registry successfully")
+    if model is None:
+        raise RuntimeError(f"Model not found: {model_name}")
 
-    except Exception as e:
-        logger.warning(f"Could not load from MLflow: {e}")
-        logger.info("Trying local storage...")
-
-        local_model_path = MODEL_DIR / f"{model_name}_best.joblib"
-
-        if local_model_path.exists():
-            logger.info(f"Loading from: {local_model_path}")
-            model = joblib.load(local_model_path)
-            model_version = f"local-{local_model_path.stem}"
-            logger.info("Model loaded from local storage")
-        else:
-            raise RuntimeError(f"Model not found: {model_name}")
-
-    feature_names_path = MODEL_DIR / f"{model_name}_feature_names.joblib"
-    if feature_names_path.exists():
-        feature_names = joblib.load(feature_names_path)
-        logger.info(f"Loaded {len(feature_names)} feature names")
-    else:
-        logger.warning("Feature names not found")
+    # Load feature names
+    feature_paths = [
+        MODEL_DIR / f"{model_name}_feature_names.joblib",
+        MODEL_DIR / "feature_names.joblib",
+    ]
+    for fp in feature_paths:
+        if fp.exists():
+            feature_names = joblib.load(fp)
+            logger.info(f"Loaded {len(feature_names)} feature names from {fp.name}")
+            break
+    if not feature_names:
+        logger.warning("Feature names not found, using default order")
         feature_names = None
 
     return model
@@ -248,14 +258,35 @@ async def startup_event():
         logger.error(f"Failed to load model on startup: {e}")
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", tags=["Dashboard"])
 async def root():
-    """Root endpoint - basic info."""
+    """Serve the React Credit Risk Intelligence Dashboard if available, else API info."""
+    if FRONTEND_INDEX.exists():
+        return FileResponse(str(FRONTEND_INDEX))
     return {
         "service": "Credit Risk API",
         "version": "1.0.0",
         "status": "running",
-        "docs": "/docs"
+        "docs": "/docs",
+    }
+
+
+@app.get("/dashboard", tags=["Dashboard"])
+async def dashboard():
+    """Serve the React Credit Risk Intelligence Dashboard."""
+    if FRONTEND_INDEX.exists():
+        return FileResponse(str(FRONTEND_INDEX))
+    raise HTTPException(status_code=404, detail="Frontend dashboard not found")
+
+
+@app.get("/api", tags=["Root"])
+async def api_info():
+    """API info endpoint."""
+    return {
+        "service": "Credit Risk API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs",
     }
 
 
